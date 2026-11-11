@@ -155,6 +155,22 @@ inline void M6502::poke(uInt16 address, uInt8 value, Device::AccessFlags flags)
 
   mySystem->incrementCycles(1);  // 1 system cycle per CPU cycle on the 6507
   ++icycles;
+#ifdef DEBUGGER_SUPPORT
+  {
+    // The byte about to be replaced, read with no side effects: cart/RAM
+    // pages with a direct base, the TIA's write shadow, RIOT RAM.
+    const auto& pa = mySystem->getPageAccess(address);
+    if(pa.directPeekBase)
+      myLastPokeOld = pa.directPeekBase[address & System::PAGE_MASK];
+    else if((address & 0x1080) == 0)
+      myLastPokeOld = mySystem->tia().registerValue(address & 0x3F);
+    else if((address & 0x1280) == 0x80)
+      myLastPokeOld = mySystem->peekOob(address);
+    else
+      myLastPokeOld = 0;
+    myLastPokeValue = value;
+  }
+#endif  // DEBUGGER_SUPPORT
   mySystem->poke(address, value, flags);
 
 #ifdef DEBUGGER_SUPPORT
@@ -347,6 +363,9 @@ inline void M6502::_execute(uInt64 cycles, DispatchResult& result)
         icycles = 0;
     #ifdef DEBUGGER_SUPPORT
         const uInt16 oldPC = PC;
+
+        if(myInstructionTap)
+          myInstructionTap(PC, A, X, Y, SP, PS(), mySystem->cycles());
 
         // Only check for code in RAM execution if we have debugger support
         if(!mySystem->cart().canExecute(PC))

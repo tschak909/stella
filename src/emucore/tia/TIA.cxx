@@ -614,6 +614,12 @@ bool TIA::poke(uInt16 address, uInt8 value)
   // the correct color clock.
   updateEmulation();
 
+  if(myPokeTap)
+    myPokeTap(static_cast<uInt8>(address & 0x3FU), value,
+              myShadowRegisters[address & 0x3FU],
+              static_cast<int>(myHctr) - static_cast<int>(TIAConstants::H_BLANK_CLOCKS),
+              static_cast<int>(myFrameManager->getY()));
+
   // Each write falls into one of three buckets:
   //   - Strobes whose effect must be immediate (WSYNC/RSYNC/RESxx/CXCLR);
   //     these call flushLineCache() if they change rendered state.
@@ -1811,6 +1817,9 @@ void TIA::applyRsync()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 FORCE_INLINE void TIA::nextLine()
 {
+  if(myLineTap)
+    myLineTap(static_cast<int>(myFrameManager->getY()));
+
   bool cloned = false;
   if (myLinesSinceChange >= 2) {
     cloneLastLine();

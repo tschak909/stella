@@ -63,6 +63,8 @@ class CpuDebug : public DebuggerSystem
     int c() const;
 
     int icycles() const;
+    int lastPokeOld() const;
+    int lastPokeValue() const;
 
     void setPC(int pc);
     void setSP(int sp);

@@ -177,6 +177,23 @@ class M6502 : public Serializable
     uInt16 lastWriteAddress() const { return myLastPokeAddress; }
 
     /**
+      The byte of the last write and the byte it replaced (FujiNet Go
+      debugger: "wrote $X = $V (was $Y)" and `_old`/`_value` in conditions).
+      The old byte is read before the store without side effects.
+    */
+    uInt8 lastPokeValue() const { return myLastPokeValue; }
+    uInt8 lastPokeOld() const { return myLastPokeOld; }
+
+    /**
+      Instruction tap (FujiNet Go debugger trace): called before every
+      instruction with the PC and the registers as they are before it runs.
+    */
+    using InstructionTap = std::function<void(uInt16 pc, uInt8 a, uInt8 x,
+                                              uInt8 y, uInt8 sp, uInt8 ps,
+                                              uInt64 cycles)>;
+    void setInstructionTap(InstructionTap tap) { myInstructionTap = std::move(tap); }
+
+    /**
       Return the last (non-mirrored) address that was part of a read/peek.
 
       @return The address of the last read
@@ -400,6 +417,10 @@ class M6502 : public Serializable
     /// Indicates the last address which was accessed specifically
     /// by a peek or poke command
     uInt16 myLastPeekAddress{0}, myLastPokeAddress{0};
+    uInt8 myLastPokeValue{0}, myLastPokeOld{0};
+#ifdef DEBUGGER_SUPPORT
+    InstructionTap myInstructionTap;
+#endif
     /// Indicates the last base (= non-mirrored) address which was
     /// accessed specifically by a peek or poke command
     uInt16 myLastPeekBaseAddress{0}, myLastPokeBaseAddress{0};

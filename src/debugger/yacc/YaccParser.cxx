@@ -179,6 +179,8 @@ CpuMethod Lexer::getCpuSpecial(string_view s)
   if (BSPF::equalsIgnoreCase(s, "i"))        return &CpuDebug::i;
   if (BSPF::equalsIgnoreCase(s, "b"))        return &CpuDebug::b;
   if (BSPF::equalsIgnoreCase(s, "_iCycles")) return &CpuDebug::icycles;
+  if (BSPF::equalsIgnoreCase(s, "_old"))     return &CpuDebug::lastPokeOld;
+  if (BSPF::equalsIgnoreCase(s, "_value"))   return &CpuDebug::lastPokeValue;
   return nullptr;
 }
 

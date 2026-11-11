@@ -272,3 +272,7 @@ void CpuDebug::toggleC()
 {
   my6502.C = !my6502.C;
 }
+
+// FujiNet Go: the last write's old and new byte, for `_old` / `_value`.
+int CpuDebug::lastPokeOld() const { return my6502.lastPokeOld(); }
+int CpuDebug::lastPokeValue() const { return my6502.lastPokeValue(); }

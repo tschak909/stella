@@ -596,6 +596,20 @@ class TIA : public Device
     uInt8 registerValue(uInt8 reg) const;
 
     /**
+      FujiNet Go debugger taps. The line tap runs as a scanline ends, before
+      the next one starts: `y` is the line that just finished and the
+      registers (registerValue) are what drew it. The poke tap runs on every
+      TIA write once the TIA has caught up: the register (0-63), the new
+      value, the value it replaces, and the beam (x in colour clocks from the
+      left of the picture, -68..159, y the scanline in the frame).
+    */
+    using LineTap = std::function<void(int y)>;
+    using PokeTap = std::function<void(uInt8 reg, uInt8 value, uInt8 old,
+                                       int x, int y)>;
+    void setLineTap(LineTap tap) { myLineTap = std::move(tap); }
+    void setPokeTap(PokeTap tap) { myPokeTap = std::move(tap); }
+
+    /**
       Get the current x value.
     */
     uInt8 getPosition() const {
@@ -994,6 +1008,8 @@ class TIA : public Device
      * see TIA::flushLineCache.
      */
     uInt32 myLinesSinceChange{0};
+    LineTap myLineTap;
+    PokeTap myPokeTap;
 
     /**
      * The current mode of the priority encoder.
