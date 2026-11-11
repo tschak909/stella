@@ -310,6 +310,9 @@ void Console::redetectFrameLayout()
 
   save(s);
   autodetectFrameLayout(false);
+  // A memory Serializer has one position for reads and writes: without the
+  // rewind, load() reads past the end and restores an all-zero machine
+  s.rewind();
   load(s);
 
   initializeAudio();
